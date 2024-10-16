@@ -71,6 +71,8 @@ public class Main {
         TmComputationSql(url, user, password);
         updateTmHardwareSql(url,user,password);
         updateTerminalMasterSQL(url,user,password);
+        licenseSQL(url,user,password);
+        readingSQL(url,user,password);
     }
 
     @Deprecated
@@ -102,7 +104,7 @@ public class Main {
             e.printStackTrace(); // Handle any IO exceptions
         }
     }
-    
+
 
     private static void companyMasterSql(String url, String user, String password) {
         String filePath = "C:\\Users\\Owner\\Documents\\Data Migration\\CompanyMaster.sql";
@@ -4015,7 +4017,232 @@ public class Main {
     }
 
 
-    
+    private static void licenseSQL(String url, String user, String password) {
+        String filePath = "C:\\Users\\Owner\\Documents\\Data Migration\\License.sql";
+
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // Establish the connection
+            connection = DriverManager.getConnection(url, user, password);
+            statement = connection.createStatement();
+
+            // Execute a SQL query
+            String sql = "SELECT * FROM sm_license"; // Replace with your SQL query
+            resultSet = statement.executeQuery(sql);
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                while (resultSet.next()) {
+
+
+                    Long id = null;
+                    String createdBy = resultSet.getString("fcreated_by");
+                    String createdDate = resultSet.getString("fcreated_date");
+                    String updatedBy = resultSet.getString("fupdated_by");
+                    String updatedDate = resultSet.getString("fupdated_date");
+                    String applicationDate = resultSet.getString("fcreated_date");
+                    Boolean billable = resultSet.getBoolean("fbillable");
+                    String expiryDate = resultSet.getString("fedate");
+                    String licenseKey = resultSet.getString("flicense_key");
+                    String memo = resultSet.getString("fmemo");
+                    Integer monthsToAdd = resultSet.getInt("fmonths");
+                    String requestedBy = resultSet.getString("fcreated_by");
+                    String salesRep = null;
+                    String startDate = resultSet.getString("fsdate");
+                    Integer status = resultSet.getInt("fstatus_flag");
+//                    Integer type = resultSet.getInt("flicense_type");
+                    Integer type = null;
+                    Integer unit = resultSet.getInt("funitprice");
+                    String companyId = resultSet.getString("fcompanyid");
+                    Long terminalMasterId = resultSet.getLong("ftermid");
+
+                    String query = """
+                            INSERT INTO `License` (
+                                    billable, monthsToAdd, status, type, unit,
+                                    id, terminalMasterId, applicationDate, companyId, createdBy, 
+                                    createdDate, expiryDate, licenseKey, memo, requestedBy, 
+                                    salesRep, startDate, updatedBy, updatedDate
+                                )
+                                VALUES (
+                                   %b,%d,%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                                );
+                            """;
+                    String formattedSql = String.format(
+                            query,
+                            billable, monthsToAdd, status, type, unit,
+                            id, terminalMasterId,
+                            convertDate(applicationDate),
+                            escapeSqlString(companyId),
+                            escapeSqlString(createdBy),
+                            convertDate(createdDate),
+                            convertDate(expiryDate, true),
+                            escapeSqlString(licenseKey),
+                            escapeSqlString(memo),
+                            escapeSqlString(requestedBy),
+                            escapeSqlString(salesRep),
+                            convertDate(startDate, true),
+                            escapeSqlString(updatedBy),
+                            convertDate(updatedDate)
+
+                    );
+
+                    // Write the SQL statement to the file
+                    writer.write(formattedSql);
+                    writer.newLine(); // Add a new line for the next statement
+                }
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle any IO exceptions
+            }
+            // Process the ResultSet
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle SQL exceptions
+        } finally {
+            // Close resources in reverse order of opening
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+
+                System.out.println("License: DONE");
+            } catch (SQLException e) {
+                e.printStackTrace(); // Handle closing exceptions
+            }
+        }
+    }
+
+
+    private static void readingSQL(String url, String user, String password) {
+        String filePath = "C:\\Users\\Owner\\Documents\\Data Migration\\Reading.txt";
+
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // Establish the connection
+            connection = DriverManager.getConnection(url, user, password);
+            statement = connection.createStatement();
+
+            // Execute a SQL query
+            String sql = "SELECT * FROM pos_reading"; // Replace with your SQL query
+            resultSet = statement.executeQuery(sql);
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                while (resultSet.next()) {
+
+
+                    Long id = null;
+                    String createdBy = resultSet.getString("fcreated_by");
+                    String createdDate = resultSet.getString("fcreated_date");
+                    String updatedBy = resultSet.getString("fupdated_by");
+                    String updatedDate = resultSet.getString("fupdated_date");
+                    String closeTime = resultSet.getString("fclose_time");
+                    BigDecimal discount5 = null;
+                    BigDecimal discount5Num = null;
+                    BigDecimal discount6 = null;
+                    BigDecimal discount6Num = null;
+                    Float ewt = resultSet.getFloat("fewt");
+                    Float ewt2 = resultSet.getFloat("fewt2");
+                    Integer fDocumentNo = resultSet.getInt("ffdocument_no");
+                    Float gross = resultSet.getFloat("fgross");
+                    Float gross2 = resultSet.getFloat("fgross2");
+                    Integer hspct = resultSet.getInt("fhspct");
+                    Integer isSent = resultSet.getInt("fsent_flag");
+                    Integer lineCounter = resultSet.getInt("fline_counter");
+                    Float noTaxSale = resultSet.getFloat("fnotax_sale");
+                    Float noTaxSale2 = resultSet.getFloat("fnotax_sale2");
+                    String openTime = resultSet.getString("fopen_time");
+                    Float prevEwt = resultSet.getFloat("fpewt");
+                    Float prevEwt2 = resultSet.getFloat("fpewt2");
+                    Float prevGross = resultSet.getFloat("fpgross");
+                    Float prevGross2 = resultSet.getFloat("fpgross2");
+                    Float prevNoTaxSale = resultSet.getFloat("fpnotax_sale");
+                    Float prevNoTaxSale2 = resultSet.getFloat("fpnotax_sale2");
+                    Integer prevResetCounter = resultSet.getInt("fpzcounter");
+                    Integer prevResetCounter2 = resultSet.getInt("fpzcounter2");
+                    Float prevTax = resultSet.getFloat("fptax");
+                    Float prevTax2 = resultSet.getFloat("fptax2");
+                    Float prevTaxSale = resultSet.getFloat("fptax_sale");
+                    Float prevTaxSale2 = resultSet.getFloat("fptax_sale2");
+                    Integer resetCounter = resultSet.getInt("fzcounter");
+                    Integer resetCounter2 = resultSet.getInt("fpzcounter2");
+                    String saleDate = resultSet.getString("fsale_date");
+                    Integer sentCount = resultSet.getInt("fsent_count");
+                    Integer tDocumentNo = resultSet.getInt("ftdocument_no");
+                    Float tax = resultSet.getFloat("ftax");
+                    Float tax2 = resultSet.getFloat("ftax2");
+                    Float taxSale = resultSet.getFloat("ftax_sale");
+                    Float taxSale2 = resultSet.getFloat("ftax_sale2");
+                    String terminalReadingGuid = null;
+                    String transmit = "0002";
+                    String companyId = resultSet.getString("fcompanyid");
+                    Long terminalMasterId = resultSet.getLong("ftermid");
+
+                    String query = """
+                            INSERT INTO `Reading` (
+                                    discount5, discount5Num, discount6, discount6Num, ewt, 
+                                    ewt2, gross, gross2, noTaxSale, noTaxSale2, 
+                                    prevEwt, prevEwt2, prevGross, prevGross2, prevNoTaxSale, 
+                                    prevNoTaxSale2, prevTax, prevTax2, prevTaxSale, prevTaxSale2, 
+                                    tax, tax2, taxSale, taxSale2, fDocumentNo, 
+                                    hspct, isSent, lineCounter, prevResetCounter, prevResetCounter2, 
+                                    resetCounter, resetCounter2, sentCount, tDocumentNo, id, 
+                                    terminalMasterId, closeTime, companyId, createdBy, createdDate, 
+                                    openTime, saleDate, terminalReadingGuid, transmit, updatedBy, 
+                                    updatedDate
+                                )
+                                VALUES (
+                                   %f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,
+                                   %f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                                );
+                            """;
+                    String formattedSql = String.format(
+                            query,
+                            discount5, discount5Num, discount6, discount6Num, ewt,
+                            ewt2, gross, gross2, noTaxSale, noTaxSale2,
+                            prevEwt, prevEwt2, prevGross, prevGross2, prevNoTaxSale,
+                            prevNoTaxSale2, prevTax, prevTax2, prevTaxSale, prevTaxSale2,
+                            tax, tax2, taxSale, taxSale2, fDocumentNo,
+                            hspct, isSent, lineCounter, prevResetCounter, prevResetCounter2,
+                            resetCounter, resetCounter2, sentCount, tDocumentNo, id,
+                            terminalMasterId, escapeSqlString(closeTime), escapeSqlString(companyId), escapeSqlString(createdBy), convertDate(createdDate),
+                            escapeSqlString(openTime), convertDate(saleDate,true), escapeSqlString(terminalReadingGuid),
+                            escapeSqlString(transmit), escapeSqlString(updatedBy),
+                            convertDate(updatedDate)
+
+
+                    );
+
+                    // Write the SQL statement to the file
+                    writer.write(formattedSql);
+                    writer.newLine(); // Add a new line for the next statement
+                }
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle any IO exceptions
+            }
+            // Process the ResultSet
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle SQL exceptions
+        } finally {
+            // Close resources in reverse order of opening
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+
+                System.out.println("Reading: DONE");
+            } catch (SQLException e) {
+                e.printStackTrace(); // Handle closing exceptions
+            }
+        }
+    }
+
 
 
     @Deprecated
