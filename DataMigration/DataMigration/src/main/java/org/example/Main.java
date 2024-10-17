@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -4178,8 +4179,8 @@ public class Main {
                     Float tax2 = resultSet.getFloat("ftax2");
                     Float taxSale = resultSet.getFloat("ftax_sale");
                     Float taxSale2 = resultSet.getFloat("ftax_sale2");
-                    String terminalReadingGuid = null;
-                    String transmit = "0002";
+                    String terminalReadingGuid = generateUUID();
+                    String transmit = "0002"; // static temp
                     String companyId = resultSet.getString("fcompanyid");
                     Long terminalMasterId = resultSet.getLong("ftermid");
 
@@ -7194,6 +7195,24 @@ public class Main {
 
             default -> 1; // Default case
         };
+    }
+
+
+    public static String generateUUID() {
+        String template = "10000000-1000-4000-8000-100000000000";
+        StringBuilder uuidBuilder = new StringBuilder(template);
+
+        for (int i = 0; i < template.length(); i++) {
+            char c = template.charAt(i);
+            if (c == '0' || c == '1' || c == '8') {
+                int randomValue = new SecureRandom().nextInt(16);
+                int hexValue = Character.digit(c, 16) ^ (randomValue & (15 >> (Character.digit(c, 16) / 4)));
+                char hexChar = Character.forDigit(hexValue, 16);
+                uuidBuilder.setCharAt(i, hexChar);
+            }
+        }
+
+        return uuidBuilder.toString();
     }
 
 
