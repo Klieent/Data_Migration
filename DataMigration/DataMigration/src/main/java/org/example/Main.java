@@ -73,7 +73,8 @@ public class Main {
         updateTmHardwareSql(url,user,password);
         updateTerminalMasterSQL(url,user,password);
         licenseSQL(url,user,password);
-        readingSQL(url,user,password);
+//        readingSQL(url,user,password);
+        securityAccessSQL(url,user,password);
     }
 
     @Deprecated
@@ -4245,6 +4246,83 @@ public class Main {
     }
 
 
+    private static void securityAccessSQL(String url, String user, String password) {
+        String filePath = "C:\\Users\\Owner\\Documents\\Data Migration\\SecurityAccess.sql";
+
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // Establish the connection
+            connection = DriverManager.getConnection(url, user, password);
+            statement = connection.createStatement();
+
+            // Execute a SQL query
+            String sql = "SELECT * FROM sm_access_level_list"; // Replace with your SQL query
+            resultSet = statement.executeQuery(sql);
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                while (resultSet.next()) {
+
+
+                    Long id = null;
+                    String createdBy = resultSet.getString("fcreated_by");
+                    String createdDate = resultSet.getString("fcreated_date");
+                    String updatedBy = resultSet.getString("fupdated_by");
+                    String updatedDate = resultSet.getString("fupdated_date");
+                    String app = resultSet.getString("fappid");
+                    String resourceId = resultSet.getString("fresourceid");
+                    String resourceName = null;
+                    String accessLevelMasterId = resultSet.getString("faclvlid");
+                    String companyId = resultSet.getString("fcompanyid");
+
+                    String query = """
+                            INSERT INTO `SecurityAccess` (
+                                   id, createdBy, createdDate,
+                                   updatedBy, updatedDate,
+                                   app, resourceId, resourceName,
+                                   accessLevelMasterId, companyId
+                                )
+                                VALUES (
+                                   %d,%s,%s,%s,%s,%s,%s,%s,%d,%s
+                                );
+                            """;
+                    String formattedSql = String.format(
+                            query,
+                            id, escapeSqlString(createdBy), convertDate(createdDate),
+                            escapeSqlString(updatedBy), convertDate(updatedDate),
+                            escapeSqlString(app), escapeSqlString(resourceId), escapeSqlString(resourceName),
+                            getRoleId(accessLevelMasterId), escapeSqlString(companyId)
+
+
+                    );
+
+                    // Write the SQL statement to the file
+                    writer.write(formattedSql);
+                    writer.newLine(); // Add a new line for the next statement
+                }
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle any IO exceptions
+            }
+            // Process the ResultSet
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle SQL exceptions
+        } finally {
+            // Close resources in reverse order of opening
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+
+                System.out.println("Security Access: DONE");
+            } catch (SQLException e) {
+                e.printStackTrace(); // Handle closing exceptions
+            }
+        }
+    }
 
     @Deprecated
     public static String formatNullField(String field) {
@@ -4527,6 +4605,88 @@ public class Main {
             return 7;
         }
     }
+
+    public static Integer getRoleId(String role) {
+        switch (role) {
+            case "ADMIN":
+                return 1;
+            case "CASHIER":
+                return 2;
+            case "ENCODER":
+                return 3;
+            case "MANAGER":
+                return 4;
+            case "OWNER":
+                return 5;
+            case "SUPERVISOR":
+                return 6;
+            case "1":
+                return 7;
+            case "0":
+                return 8;
+            case "PRICEMANAGER":
+                return 9;
+            case "SALESMANAGER":
+                return 10;
+            case "ADJTYPEMANAGER":
+                return 11;
+            case "INVMANAGER":
+                return 12;
+            case "INVSUPERVISOR":
+                return 13;
+            case "ASSETACCTANT":
+                return 14;
+            case "CCODEMANAGER":
+                return 15;
+            case "DIVMANAGER":
+                return 16;
+            case "EMPTYPEMANAGER":
+                return 17;
+            case "ACCTMANAGER":
+                return 18;
+            case "ACCTENCODER":
+                return 19;
+            case "ACCTSUPERVISOR":
+                return 20;
+            case "PRICELVLMANAGER":
+                return 21;
+            case "PRODMANAGER":
+                return 22;
+            case "CANCELREASONMANAGER":
+                return 23;
+            case "CUTOFFMANAGER":
+                return 24;
+            case "REGIONMANAGER":
+                return 25;
+            case "PPOINTMANAGER":
+                return 26;
+            case "WAREHOUSEMANAGER":
+                return 27;
+            case "TENDERTYPEMANAGER":
+                return 28;
+            case "AUDITOR":
+                return 29;
+            case "BUSINESSMANAGER":
+                return 30;
+            case "BUSINESSSUPERVISOR":
+                return 31;
+            case "BUSINESSASSISTANT":
+                return 32;
+            case "HRUBFADMIN":
+                return 33;
+            case "SALESSUPERVISOR":
+                return 34;
+            case "SALES":
+                return 35;
+            case "ACCTINVBACKUP":
+                return 36;
+            case "ENROLLEDEMPMGR":
+                return 37;
+            default:
+                return  null;
+        }
+    }
+
 
     private static Integer chooseForProductType(String value) {
         return switch (value.charAt(0)) {
