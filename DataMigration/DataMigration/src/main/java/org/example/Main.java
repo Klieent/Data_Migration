@@ -75,6 +75,8 @@ public class Main {
         licenseSQL(url,user,password);
 //        readingSQL(url,user,password);
         securityAccessSQL(url,user,password);
+
+        auditTrailSql(url,user,password);
     }
 
     @Deprecated
@@ -4324,6 +4326,84 @@ public class Main {
         }
     }
 
+
+    private static void auditTrailSql(String url, String user, String password) {
+        String filePath = "C:\\Users\\Owner\\Documents\\Data Migration\\AuditTrail.txt";
+
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // Establish the connection
+            connection = DriverManager.getConnection(url, user, password);
+            statement = connection.createStatement();
+
+            // Execute a SQL query
+            String sql = "SELECT * FROM sm_audit_trail"; // Replace with your SQL query
+            resultSet = statement.executeQuery(sql);
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                while (resultSet.next()) {
+
+
+                    Long id = null;
+                    String createdBy = resultSet.getString("fcreated_by");
+                    String createdDate = resultSet.getString("fcreated_date");
+                    String updatedBy = resultSet.getString("fcreated_by");
+                    String updatedDate = resultSet.getString("fcreated_date");
+                    String resource = resultSet.getString("fresourceid");
+                    String companyId = resultSet.getString("fcompanyid");
+                    String mode = resultSet.getString("fcode");
+                    String memo = resultSet.getString("fmemo");
+                    String timestamp = resultSet.getString("fcreated_date");
+
+                    String query = """
+                            INSERT INTO `SecurityAccess` (
+                                   id, createdBy, createdDate,
+                                   updatedBy, updatedDate,
+                                   resource, mode, memo,
+                                   timestamp, companyId
+                                )
+                                VALUES (
+                                   %d,%s,%s,%s,%s,%s,%s,%s,%s,%s
+                                );
+                            """;
+                    String formattedSql = String.format(
+                            query,
+                            id, escapeSqlString(createdBy), convertDate(createdDate),
+                            escapeSqlString(updatedBy), convertDate(updatedDate),
+                            escapeSqlString(resource), escapeSqlString(mode), escapeSqlString(memo),
+                            convertDate(timestamp), escapeSqlString(companyId)
+
+
+                    );
+
+                    // Write the SQL statement to the file
+                    writer.write(formattedSql);
+                    writer.newLine(); // Add a new line for the next statement
+                }
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle any IO exceptions
+            }
+            // Process the ResultSet
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle SQL exceptions
+        } finally {
+            // Close resources in reverse order of opening
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (connection != null) connection.close();
+
+                System.out.println("Audit Trail: DONE");
+            } catch (SQLException e) {
+                e.printStackTrace(); // Handle closing exceptions
+            }
+        }
+    }
     @Deprecated
     public static String formatNullField(String field) {
         return (field == null) ? "NULL" : "'" + field.replace("'", "''") + "'"; // Return actual value or NULL for SQL
