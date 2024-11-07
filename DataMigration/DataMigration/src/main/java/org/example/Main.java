@@ -4360,8 +4360,8 @@ public class Main {
                     String timestamp = resultSet.getString("fcreated_date");
 
                     String query = """
-                            INSERT INTO `SecurityAccess` (
-                                   id, createdBy, createdDate,
+                            INSERT INTO `AuditTrail` (
+                                   auditId, createdBy, createdDate,
                                    updatedBy, updatedDate,
                                    resource, mode, memo,
                                    timestamp, companyId
